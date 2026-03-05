@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "myscout"
+version = "0.1.0"
+description = "Local job ingestion, deduplication, and scoring engine"
+requires-python = ">=3.11"
+dependencies = [
+    "sqlalchemy>=2.0",
+    "psycopg2-binary>=2.9",
+    "alembic>=1.12",
+    "pyyaml>=6.0",
+    "httpx>=0.25",
+    "pgvector>=0.2",
+    "click>=8.1",
+    "beautifulsoup4>=4.12",
+    "markdownify>=0.13",
+    "playwright>=1.58.0",
+]
+
+[project.optional-dependencies]
+embeddings = ["openai>=1.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

@@ -1,0 +1,185 @@
+# ============================================================================
+# MyScout Profile Configuration
+# ============================================================================
+# This file tells the scoring engine what you're looking for in a job.
+# Copy this to config/profile.yml and fill in your preferences.
+# profile.yml is gitignored — your personal data stays on your machine.
+# ============================================================================
+
+profile:
+
+  # --------------------------------------------------------------------------
+  # Role Targets — what job titles and seniority levels you're looking for
+  # --------------------------------------------------------------------------
+  role_targets:
+    # Job titles you want to match. Case-insensitive, partial matches work.
+    # Example: ["software engineer", "frontend engineer", "full stack developer"]
+    titles: []
+
+    # Job title keywords that hurt the score. If any of these appear in the
+    # title, a heavy penalty is applied PER match. Useful for filtering out
+    # roles in other departments that mention your tech stack incidentally.
+    # Example: ["sales", "recruiter", "account executive", "customer success"]
+    exclude_titles: []
+
+    seniority:
+      # Seniority levels you want. Detected from job titles automatically.
+      # Jobs with a detected seniority NOT in this list get a -20 penalty.
+      # Jobs with no detected seniority are not penalized (benefit of doubt).
+      # Options: intern, junior, mid, senior, staff, principal, lead
+      # Example: ["senior", "staff"]
+      include: []
+
+      # Seniority levels to hard-filter. Jobs matching get a -50 penalty.
+      # Example: ["intern", "junior"] if you're past that stage
+      exclude: []
+
+  # --------------------------------------------------------------------------
+  # Constraints — hard filters for what jobs you'll consider
+  # --------------------------------------------------------------------------
+  constraints:
+    remote:
+      # What work arrangements you'll accept.
+      # Options: "remote", "hybrid", "onsite"
+      # Example: ["remote"] for remote-only, ["remote", "hybrid"] for flexible
+      allowed: ["remote", "hybrid"]
+
+    countries:
+      # Only show jobs available in these countries.
+      # Uses smart matching: "US" matches "United States", "Remote, US",
+      # and US state abbreviations like "New York, NY".
+      # Common codes: US, UK, CA, DE, FR, IN, AU, IE, JP, BR, MX, etc.
+      # Leave empty to allow all countries.
+      # Example: ["US"] for US-only, ["US", "CA", "UK"] for multiple
+      include: []
+
+    locations:
+      # Geographic preferences (matched as substrings against job location field).
+      # include: +15 bonus when a preferred location matches (rewards, doesn't penalize)
+      # exclude: -30 penalty when an excluded location matches
+      # Example include: ["San Francisco", "New York", "Austin"]
+      # Example exclude: ["Beijing", "Mumbai"]
+      include: []
+      exclude: []
+
+    employment_type:
+      # What type of employment you want.
+      # Options: "full-time", "part-time", "contract", "internship"
+      include: ["full-time"]
+
+    salary:
+      # Minimum salary in USD. Jobs with extracted salary below this get a -20
+      # penalty. Moderate penalty because salary extraction is imprecise.
+      # Jobs with no salary data are not penalized. Set null to skip.
+      # Example: 150000
+      min_usd: null
+
+  # --------------------------------------------------------------------------
+  # Tech Preferences — technologies you care about
+  # --------------------------------------------------------------------------
+  # These are matched against extracted tech tags AND the full job description.
+  # Use lowercase. The engine recognizes 60+ common technologies automatically
+  # (python, react, typescript, aws, kubernetes, etc.)
+  tech_preferences:
+    # Technologies you MUST see in a job. Higher match ratio = higher score.
+    # Example: ["typescript", "react", "node"]
+    must_have: []
+
+    # Technologies that are a bonus but not required.
+    # Example: ["graphql", "nextjs", "tailwind", "postgres"]
+    strong_plus: []
+
+    # Technologies you want to avoid. Each match applies a penalty.
+    # Example: ["php", "wordpress", "cobol"]
+    avoid: []
+
+  # --------------------------------------------------------------------------
+  # Keywords — phrase matching in job titles and descriptions
+  # --------------------------------------------------------------------------
+  keywords:
+    # Phrases that indicate a good match for you.
+    # Example: ["developer experience", "design systems", "open source"]
+    include_phrases: []
+
+    # Phrases that indicate a bad match. Each match applies a heavy penalty.
+    # Example: ["clearance required", "on-call rotation", "sales quota"]
+    exclude_phrases: []
+
+  # --------------------------------------------------------------------------
+  # Training Examples — teach the scoring engine what you like
+  # --------------------------------------------------------------------------
+  # Point to saved job postings in the saved_jobs/ directory.
+  # These are used for semantic similarity scoring when embeddings are enabled.
+  training_examples:
+    # Jobs you'd be a strong candidate for, based on your current skills.
+    # Example: ["saved_jobs/stripe-senior-frontend.md"]
+    good_shot: []
+
+    # Jobs where you actually got an interview — strongest training signal.
+    # Example: ["saved_jobs/acme-staff-engineer.md"]
+    got_interview: []
+
+    # Dream roles you're working toward, even if you're not qualified yet.
+    # Example: ["saved_jobs/openai-research-engineer.md"]
+    aspirational: []
+
+# ============================================================================
+# Scoring Weights — how much each factor contributes to the final score
+# ============================================================================
+# Score model: (base + title_bonus + penalties + bonuses) × must_have_ratio
+#
+# must_have_match is a 0.0-1.0 GATE — it multiplies the entire score.
+# If none of your must-have tech is found, the score collapses to 0.
+# Everything else is additive: bonuses increase, penalties decrease.
+#
+# Example score for a great match:
+#   base_score:          30              — passes must-have gate
+#   title_match:         25              — title matches your target
+#   strong_plus_match:    7 (out of 10)  — has most nice-to-have tech
+#   recency_bonus:        8 (out of 10)  — posted this week
+#   constraint_penalty:   0              — no constraint violations
+#   × must_have_match:   1.0             — all required tech found
+#   TOTAL:               70
+#
+# Example score for a bad match:
+#   base_score:          30
+#   title_match:          0              — title doesn't match
+#   penalty_avoid_tech: -25              — found 1 avoided technology
+#   penalty_exclude_phrase: -40          — found "clearance required"
+#   × must_have_match:   0.5             — half of required tech found
+#   TOTAL:              -17.5
+#
+scoring:
+  weights:
+    # ── Base score ────────────────────────────────────────────
+    # Starting score for every job. Bonuses and penalties adjust this.
+    # The final result is multiplied by the must-have gate (0.0-1.0).
+    base_score: 30
+
+    # ── Title matching ────────────────────────────────────────
+    # Bonus when job title matches your target titles (additive, not a gate).
+    # A job with unusual title but matching tech can still score well.
+    title_match: 25
+
+    # Penalty PER excluded title keyword (e.g. "sales", "recruiter").
+    penalty_exclude_title: -40
+
+    # ── Tech bonuses ──────────────────────────────────────────
+    # Reward for matching your nice-to-have technologies.
+    # Score = (matched / total strong_plus) × this weight.
+    strong_plus_match: 10
+
+    # ── Keyword bonuses/penalties ─────────────────────────────
+    # Bonus PER include phrase found in title + description.
+    include_phrase_bonus: 5
+
+    # Penalty PER avoided technology found in the job.
+    penalty_avoid_tech: -25
+
+    # Penalty PER excluded phrase found. Intentionally harsh.
+    penalty_exclude_phrase: -40
+
+    # ── Recency ───────────────────────────────────────────────
+    # Max bonus for recently posted jobs. Full bonus ≤7 days,
+    # linearly decays to 0 at 30 days.
+    recency_bonus_max: 10

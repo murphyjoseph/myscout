@@ -1,0 +1,74 @@
+# ============================================================================
+# Source Connectors
+# ============================================================================
+# Controls which job source connectors are available globally.
+# Each source maps to a Python connector class in apps/worker/myscout/connectors/.
+#
+# Types:
+#   board    — Public job board API (no auth needed). Lever, Greenhouse, Ashby.
+#   api      — Third-party job API (requires credentials via environment variables).
+#   search   — Remote job aggregator (no auth needed). Remotive.
+#   scraper  — Scrapes career pages via httpx + BeautifulSoup. Works for static sites.
+#   browser  — Headless browser (Playwright). For JS-heavy SPAs (Workday, iCIMS, etc.).
+#
+# Set "enabled: false" to disable a connector entirely.
+# For API connectors, credentials are read from environment variables (see .env.example).
+# ============================================================================
+
+sources:
+  # Adzuna — global job search API (https://developer.adzuna.com/)
+  # Requires a free API key. Currently a stub — needs implementation.
+  - id: adzuna
+    type: api
+    enabled: true
+    credentials:
+      app_id_env: ADZUNA_APP_ID
+      api_key_env: ADZUNA_API_KEY
+
+  # USAJOBS — US government job board (https://developer.usajobs.gov/)
+  # Requires a free API key + email. Currently a stub — needs implementation.
+  - id: usajobs
+    type: api
+    enabled: false
+    credentials:
+      api_key_env: USAJOBS_API_KEY
+      email_env: USAJOBS_EMAIL
+
+  # Greenhouse — public job board API. No auth needed.
+  # Use with targets that specify type: greenhouse and a board slug.
+  - id: greenhouse
+    type: board
+    enabled: true
+
+  # Lever — public postings API. No auth needed.
+  # Use with targets that specify type: lever and a company slug.
+  - id: lever
+    type: board
+    enabled: true
+
+  # Ashby — public job board API. No auth needed.
+  # Used by: Ramp, Notion, Vercel, Linear, and many tech companies.
+  # Use with targets that specify type: ashby and a board slug.
+  - id: ashby
+    type: board
+    enabled: true
+
+  # Remotive — remote job aggregator. No auth needed.
+  # Returns remote-only jobs across many companies.
+  # Use with targets that specify type: remotive, category, and optional search.
+  - id: remotive
+    type: search
+    enabled: true
+
+  # Site — generic website scraper (httpx + BeautifulSoup).
+  # Works for static career pages. Extracts JSON-LD JobPosting or HTML heuristics.
+  - id: site
+    type: scraper
+    enabled: true
+
+  # Browser — headless browser scraper (Playwright + Chromium).
+  # For JS-heavy career pages that require rendering (Workday, iCIMS, custom SPAs).
+  # Requires: uv add playwright && uv run playwright install chromium
+  - id: browser
+    type: browser
+    enabled: true
