@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/server/db";
 import type { JobWithScore, JobVariantRow } from "@/lib/api/types";
 
+// LOCAL-ONLY: No authentication or rate limiting. In production you'd add
+// auth middleware and validate all route params with a schema library.
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

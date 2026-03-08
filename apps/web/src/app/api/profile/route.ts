@@ -3,7 +3,9 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import yaml from "js-yaml";
 
-// LOCAL-ONLY: No auth — reads user's local profile.yml
+// LOCAL-ONLY: No auth — reads user's local profile.yml directly from the
+// filesystem. In production you'd add auth and never read config files from
+// disk in a route handler (use a database or environment variables instead).
 export async function GET() {
   try {
     const configDir = join(process.cwd(), "..", "..", "config");

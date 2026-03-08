@@ -421,6 +421,9 @@ export function JobDetailView({ contract }: { contract: JobDetailContract }) {
                   marginTop: 0,
                 },
               }}
+              // LOCAL-ONLY: Renders external HTML. Sanitized via DOMPurify in the
+              // presenter, but a deployed app would also set a Content-Security-Policy
+              // header to block inline scripts as defense-in-depth.
               dangerouslySetInnerHTML={{ __html: display.descriptionHtml }}
             />
           )}

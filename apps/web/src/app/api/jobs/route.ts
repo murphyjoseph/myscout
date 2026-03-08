@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/server/db";
 import type { JobWithScore } from "@/lib/api/types";
 
+// LOCAL-ONLY: No authentication, no rate limiting, raw SQL from route handlers.
+// In production you'd add auth middleware, rate limiting, and use an ORM or
+// query builder with schema validation (e.g. Zod) on all inputs.
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const status = searchParams.get("status");

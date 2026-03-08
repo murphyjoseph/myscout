@@ -1,13 +1,15 @@
+# LOCAL-ONLY: Default credentials and no TLS. In production you'd use a
+# secrets manager, encrypted volumes, TLS connections, and non-default passwords.
 services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: myscout-postgres
     environment:
-      POSTGRES_USER: myscout
-      POSTGRES_PASSWORD: myscout
+      POSTGRES_USER: myscout       # LOCAL-ONLY: default password
+      POSTGRES_PASSWORD: myscout   # LOCAL-ONLY: default password
       POSTGRES_DB: myscout
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:5432:5432"     # Bound to localhost only — not exposed to network
     volumes:
       - pgdata:/var/lib/postgresql/data
 
