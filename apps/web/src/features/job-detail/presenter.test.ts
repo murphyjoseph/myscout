@@ -190,16 +190,14 @@ describe("presentJobDetail variants", () => {
 // ── Status ──────────────────────────────────────────────────────
 
 describe("presentJobDetail status", () => {
-  it("maps status and color", () => {
+  it("maps status", () => {
     const result = presentJobDetail(makeDetail({ status: "APPLIED" }), false, null);
     expect(result.display.status).toBe("APPLIED");
-    expect(result.display.statusColor).toBe("green");
   });
 
   it("defaults to NEW when null", () => {
     const result = presentJobDetail(makeDetail({ status: null }), false, null);
     expect(result.display.status).toBe("NEW");
-    expect(result.display.statusColor).toBe("blue");
   });
 });
 
@@ -250,19 +248,9 @@ describe("presentJobDetail descriptionHtml", () => {
   });
 });
 
-// ── Notes and apply URL ─────────────────────────────────────────
+// ── Apply URL ───────────────────────────────────────────────────
 
-describe("presentJobDetail notes and applyUrl", () => {
-  it("passes through notes", () => {
-    const result = presentJobDetail(makeDetail(), false, null);
-    expect(result.display.notes).toBe("Looks interesting");
-  });
-
-  it("defaults notes to empty string", () => {
-    const result = presentJobDetail(makeDetail({ notes: null }), false, null);
-    expect(result.display.notes).toBe("");
-  });
-
+describe("presentJobDetail applyUrl", () => {
   it("passes through apply URL", () => {
     const result = presentJobDetail(makeDetail(), false, null);
     expect(result.display.applyUrl).toBe("https://example.com/apply");

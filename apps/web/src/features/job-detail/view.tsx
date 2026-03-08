@@ -13,44 +13,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
-import type { JobDetailContract, CategorizedTag, TechTagCategory } from "./presenter";
-import type { JobStatus } from "@/lib/types";
+import type { JobDetailContract } from "./types";
+import type { CategorizedTag } from "@/lib/display-utils";
 
-interface JobDetailViewProps {
-  contract: JobDetailContract;
-  notesValue: string;
-  onNotesChange: (value: string) => void;
-  onStatusChange: (status: JobStatus) => void;
-  onSaveNotes: () => void;
-  isMutating: boolean;
-}
-
-const STATUSES: JobStatus[] = ["NEW", "SAVED", "APPLIED", "SKIPPED", "INTERVIEWING"];
-
-const SCORE_COLOR = "#c8913a";
-const MUST_HAVE_COLOR = "#c8913a";
-const STRONG_PLUS_COLOR = "#6b8f71";
-const AVOID_COLOR = "#8b5454";
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "#3b82f6",
-  SAVED: "#a855f7",
-  APPLIED: "#22c55e",
-  SKIPPED: "#52525b",
-  INTERVIEWING: "#f59e0b",
-};
-
-function scoreColorHex(score: string | null): string {
-  if (!score) return "#52525b";
-  const n = parseFloat(score);
-  if (n >= 50) return SCORE_COLOR;
-  if (n >= 30) return "#a3a353";
-  if (n >= 10) return "#71717a";
-  if (n >= 0) return "#52525b";
-  return "#b45454";
-}
-
-/* ─── Sidebar section ──────────────────────────────────── */
+/* ─── Sidebar section ─────────────────────────────────── */
 
 function SidebarSection({
   title,
@@ -60,14 +26,14 @@ function SidebarSection({
   children: React.ReactNode;
 }) {
   return (
-    <Box py={4} borderBottomWidth="1px" borderColor="#1a1a1f">
+    <Box py={4} borderBottomWidth="1px" borderColor="border.subtle">
       {title && (
         <Text
           fontSize="10px"
           fontWeight="600"
           textTransform="uppercase"
           letterSpacing="0.08em"
-          color="#52525b"
+          color="fg.dim"
           mb={2.5}
         >
           {title}
@@ -78,29 +44,21 @@ function SidebarSection({
   );
 }
 
-/* ─── Tech tag (categorized) ──────────────────────────── */
-
-const TAG_STYLES: Record<TechTagCategory, { bg: string; color: string; borderColor: string }> = {
-  must_have: { bg: "rgba(200, 145, 58, 0.1)", color: MUST_HAVE_COLOR, borderColor: "rgba(200, 145, 58, 0.25)" },
-  strong_plus: { bg: "rgba(107, 143, 113, 0.08)", color: STRONG_PLUS_COLOR, borderColor: "rgba(107, 143, 113, 0.2)" },
-  avoid: { bg: "rgba(139, 84, 84, 0.08)", color: AVOID_COLOR, borderColor: "rgba(139, 84, 84, 0.2)" },
-  neutral: { bg: "#1c1c24", color: "#a1a1aa", borderColor: "#27272a" },
-};
+/* ─── Tech tag (uses presenter-provided styles) ──────── */
 
 function TechTag({ tag }: { tag: CategorizedTag }) {
-  const style = TAG_STYLES[tag.category];
   return (
     <Text
       fontSize="11px"
       px="6px"
       py="1px"
       borderRadius="4px"
-      bg={style.bg}
-      color={style.color}
+      bg={tag.style.bg}
+      color={tag.style.color}
       border="1px solid"
-      borderColor={style.borderColor}
+      borderColor={tag.style.borderColor}
       whiteSpace="nowrap"
-      fontWeight={tag.category === "must_have" ? "600" : "normal"}
+      fontWeight={tag.style.fontWeight}
     >
       {tag.label}
     </Text>
@@ -114,10 +72,10 @@ function DetailBadge({ label }: { label: string }) {
       px="6px"
       py="1px"
       borderRadius="4px"
-      bg="#1c1c24"
-      color="#a1a1aa"
+      bg="bg.muted"
+      color="fg.muted"
       border="1px solid"
-      borderColor="#27272a"
+      borderColor="border"
       whiteSpace="nowrap"
     >
       {label}
@@ -127,21 +85,14 @@ function DetailBadge({ label }: { label: string }) {
 
 /* ─── Main view ───────────────────────────────────────── */
 
-export function JobDetailView({
-  contract,
-  notesValue,
-  onNotesChange,
-  onStatusChange,
-  onSaveNotes,
-  isMutating,
-}: JobDetailViewProps) {
-  const { display, instructions } = contract;
+export function JobDetailView({ contract }: { contract: JobDetailContract }) {
+  const { display, instructions, effects } = contract;
 
   if (contract.renderAs === "loading") {
     return (
       <Container maxW="6xl" py={8}>
         <Flex justify="center" py={20}>
-          <Spinner size="md" color="#3f3f46" />
+          <Spinner size="md" color="fg.faint" />
         </Flex>
       </Container>
     );
@@ -152,10 +103,10 @@ export function JobDetailView({
       <Container maxW="6xl" py={8}>
         <Flex justify="center" py={20}>
           <VStack gap={2}>
-            <Text fontSize="md" color="#ef4444">Job not found</Text>
+            <Text fontSize="md" color="fg.error">Job not found</Text>
             <ChakraLink asChild>
               <NextLink href="/jobs">
-                <Text color="#71717a" fontSize="sm">&larr; Back to jobs</Text>
+                <Text color="fg.subtle" fontSize="sm">&larr; Back to jobs</Text>
               </NextLink>
             </ChakraLink>
           </VStack>
@@ -170,11 +121,11 @@ export function JobDetailView({
       <ChakraLink asChild _hover={{ textDecoration: "none" }}>
         <NextLink href="/jobs">
           <Text
-            color="#52525b"
+            color="fg.dim"
             fontSize="13px"
             mb={6}
             display="inline-block"
-            _hover={{ color: "#a1a1aa" }}
+            _hover={{ color: "fg.muted" }}
             transition="color 0.1s"
           >
             &larr; Jobs
@@ -189,35 +140,35 @@ export function JobDetailView({
           fontSize="24px"
           fontWeight="700"
           lineHeight="1.3"
-          color="#ededef"
+          color="fg"
           letterSpacing="-0.02em"
           mb={1}
         >
           {display.title}
         </Text>
-        <Text fontSize="16px" color="#71717a" fontWeight="500">
+        <Text fontSize="16px" color="fg.subtle" fontWeight="500">
           {display.company}
         </Text>
 
         <HStack gap={2} mt={2} flexWrap="wrap">
           {display.location && (
-            <Text fontSize="13px" color="#52525b">{display.location}</Text>
+            <Text fontSize="13px" color="fg.dim">{display.location}</Text>
           )}
           {display.salary && (
             <>
-              <Text fontSize="13px" color="#3f3f46">·</Text>
-              <Text fontSize="13px" color="#8b9a6b">{display.salary}</Text>
+              <Text fontSize="13px" color="fg.faint">·</Text>
+              <Text fontSize="13px" color="salary.fg">{display.salary}</Text>
             </>
           )}
           {display.remoteBadge && (
             <>
-              <Text fontSize="13px" color="#3f3f46">·</Text>
+              <Text fontSize="13px" color="fg.faint">·</Text>
               <DetailBadge label={display.remoteBadge} />
             </>
           )}
           {display.seniorityBadge && (
             <>
-              <Text fontSize="13px" color="#3f3f46">·</Text>
+              <Text fontSize="13px" color="fg.faint">·</Text>
               <DetailBadge label={display.seniorityBadge} />
             </>
           )}
@@ -246,13 +197,13 @@ export function JobDetailView({
                 <Text
                   fontSize="36px"
                   fontWeight="700"
-                  color={scoreColorHex(display.score)}
+                  color={display.scoreColor}
                   lineHeight="1"
                   fontVariantNumeric="tabular-nums"
                 >
                   {display.score}
                 </Text>
-                <Text fontSize="12px" color="#3f3f46">score</Text>
+                <Text fontSize="12px" color="fg.faint">score</Text>
               </Flex>
             </SidebarSection>
           )}
@@ -269,11 +220,11 @@ export function JobDetailView({
                 <Button
                   width="full"
                   size="sm"
-                  bg={SCORE_COLOR}
-                  color="#0a0a0c"
+                  bg="accent.solid"
+                  color="accent.contrast"
                   fontWeight="600"
                   fontSize="13px"
-                  _hover={{ bg: "#d9a04a" }}
+                  _hover={{ bg: "accent.emphasized" }}
                 >
                   Apply &rarr;
                 </Button>
@@ -284,12 +235,11 @@ export function JobDetailView({
           {/* Status */}
           <SidebarSection title="Status">
             <Flex gap={1.5} flexWrap="wrap">
-              {STATUSES.map((s) => {
-                const isActive = display.status === s;
-                const statusColor = STATUS_COLORS[s];
+              {display.statusButtons.map((btn) => {
+                const isActive = display.status === btn.status;
                 return (
                   <Box
-                    key={s}
+                    key={btn.status}
                     as="button"
                     px={2.5}
                     py={1}
@@ -300,17 +250,17 @@ export function JobDetailView({
                     transition="all 0.1s"
                     cursor="pointer"
                     _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
-                    onClick={() => !isMutating && onStatusChange(s)}
-                    bg={isActive ? statusColor : "transparent"}
-                    color={isActive ? "#0a0a0c" : "#52525b"}
+                    onClick={() => !instructions.isMutating && effects.onStatusChange(btn.status)}
+                    bg={isActive ? btn.color : "transparent"}
+                    color={isActive ? "accent.contrast" : "fg.dim"}
                     border="1px solid"
-                    borderColor={isActive ? statusColor : "#27272a"}
+                    borderColor={isActive ? btn.color : "border"}
                     _hover={{
-                      borderColor: statusColor,
-                      color: isActive ? "#0a0a0c" : statusColor,
+                      borderColor: btn.color,
+                      color: isActive ? "accent.contrast" : btn.color,
                     }}
                   >
-                    {s}
+                    {btn.status}
                   </Box>
                 );
               })}
@@ -321,26 +271,26 @@ export function JobDetailView({
           <SidebarSection title="Notes">
             <Textarea
               placeholder="Add notes..."
-              value={notesValue}
-              onChange={(e) => onNotesChange(e.target.value)}
+              value={display.notesValue}
+              onChange={(e) => effects.onNotesChange(e.target.value)}
               mb={2}
-              borderColor="#27272a"
+              borderColor="border"
               bg="transparent"
               fontSize="13px"
               rows={3}
-              color="#a1a1aa"
-              _placeholder={{ color: "#3f3f46" }}
-              _focus={{ borderColor: "#3f3f46" }}
+              color="fg.muted"
+              _placeholder={{ color: "fg.faint" }}
+              _focus={{ borderColor: "fg.faint" }}
             />
             <Button
               size="xs"
               variant="outline"
-              borderColor="#27272a"
-              color="#71717a"
+              borderColor="border"
+              color="fg.subtle"
               fontSize="12px"
-              onClick={onSaveNotes}
-              disabled={isMutating}
-              _hover={{ borderColor: "#3f3f46", color: "#a1a1aa" }}
+              onClick={effects.onSaveNotes}
+              disabled={instructions.isMutating}
+              _hover={{ borderColor: "fg.faint", color: "fg.muted" }}
             >
               Save
             </Button>
@@ -352,7 +302,7 @@ export function JobDetailView({
               <Flex direction="column" gap={1}>
                 {display.scoreRows.map((row) => (
                   <Flex key={row.label} justify="space-between" align="center">
-                    <Text fontSize="12px" color="#52525b">{row.label}</Text>
+                    <Text fontSize="12px" color="fg.dim">{row.label}</Text>
                     <Text
                       fontSize="12px"
                       fontWeight="600"
@@ -385,7 +335,7 @@ export function JobDetailView({
                 {display.variants.map((v) => (
                   <Flex key={v.id} justify="space-between" align="center" gap={2}>
                     <HStack gap={1.5} minW={0}>
-                      <Text fontSize="11px" color="#52525b" flexShrink={0}>
+                      <Text fontSize="11px" color="fg.dim" flexShrink={0}>
                         {v.source}
                       </Text>
                       {v.url && (
@@ -393,16 +343,16 @@ export function JobDetailView({
                           href={v.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          color="#3f3f46"
+                          color="fg.faint"
                           fontSize="11px"
-                          _hover={{ color: "#71717a" }}
+                          _hover={{ color: "fg.subtle" }}
                           lineClamp={1}
                         >
                           {v.urlDisplay}
                         </ChakraLink>
                       )}
                     </HStack>
-                    <Text fontSize="11px" color="#3f3f46" flexShrink={0}>
+                    <Text fontSize="11px" color="fg.faint" flexShrink={0}>
                       {v.dateSeen}
                     </Text>
                   </Flex>
@@ -418,12 +368,12 @@ export function JobDetailView({
             <Box
               fontSize="14px"
               lineHeight="1.75"
-              color="#a1a1aa"
+              color="fg.muted"
               css={{
                 "& h1": {
                   fontSize: "18px",
                   fontWeight: 700,
-                  color: "#ededef",
+                  color: "var(--chakra-colors-fg)",
                   marginTop: "2em",
                   marginBottom: "0.5em",
                   lineHeight: 1.3,
@@ -431,7 +381,7 @@ export function JobDetailView({
                 "& h2": {
                   fontSize: "16px",
                   fontWeight: 600,
-                  color: "#d4d4d8",
+                  color: "var(--chakra-colors-fg-heading)",
                   marginTop: "1.75em",
                   marginBottom: "0.5em",
                   lineHeight: 1.3,
@@ -439,7 +389,7 @@ export function JobDetailView({
                 "& h3, & h4": {
                   fontSize: "14px",
                   fontWeight: 600,
-                  color: "#d4d4d8",
+                  color: "var(--chakra-colors-fg-heading)",
                   marginTop: "1.5em",
                   marginBottom: "0.4em",
                 },
@@ -454,17 +404,17 @@ export function JobDetailView({
                   marginBottom: "0.35em",
                 },
                 "& li::marker": {
-                  color: "#3f3f46",
+                  color: "var(--chakra-colors-fg-faint)",
                 },
                 "& a": {
-                  color: SCORE_COLOR,
+                  color: "var(--chakra-colors-accent-solid)",
                   textDecoration: "none",
                   "&:hover": {
                     textDecoration: "underline",
                   },
                 },
                 "& strong, & b": {
-                  color: "#d4d4d8",
+                  color: "var(--chakra-colors-fg-heading)",
                   fontWeight: 600,
                 },
                 "& > *:first-child": {
@@ -476,7 +426,7 @@ export function JobDetailView({
           )}
 
           {!instructions.hasDescription && (
-            <Text fontSize="14px" color="#3f3f46" fontStyle="italic">
+            <Text fontSize="14px" color="fg.faint" fontStyle="italic">
               No description available.
             </Text>
           )}

@@ -115,31 +115,36 @@ describe("presentJobsList card fields", () => {
     const card = result.display.cards[0];
     expect(card.score).toBeNull();
     expect(card.scored).toBe(false);
-    expect(card.scoreColor).toBe("gray");
+    expect(card.scoreColor).toBe("fg.dim");
   });
 });
 
 // ── Score color mapping ─────────────────────────────────────────
 
 describe("presentJobsList scoreColor", () => {
-  it("green for score >= 30", () => {
+  it("score.high for score >= 50", () => {
+    const result = presentJobsList([makeJob({ score_total: 50 })], false, null);
+    expect(result.display.cards[0].scoreColor).toBe("score.high");
+  });
+
+  it("score.good for score 30-49", () => {
     const result = presentJobsList([makeJob({ score_total: 30 })], false, null);
-    expect(result.display.cards[0].scoreColor).toBe("green");
+    expect(result.display.cards[0].scoreColor).toBe("score.good");
   });
 
-  it("yellow for score 10-29", () => {
+  it("score.mid for score 10-29", () => {
     const result = presentJobsList([makeJob({ score_total: 15 })], false, null);
-    expect(result.display.cards[0].scoreColor).toBe("yellow");
+    expect(result.display.cards[0].scoreColor).toBe("score.mid");
   });
 
-  it("gray for score 0-9", () => {
+  it("score.low for score 0-9", () => {
     const result = presentJobsList([makeJob({ score_total: 5 })], false, null);
-    expect(result.display.cards[0].scoreColor).toBe("gray");
+    expect(result.display.cards[0].scoreColor).toBe("score.low");
   });
 
-  it("red for negative score", () => {
+  it("score.negative for negative score", () => {
     const result = presentJobsList([makeJob({ score_total: -10 })], false, null);
-    expect(result.display.cards[0].scoreColor).toBe("red");
+    expect(result.display.cards[0].scoreColor).toBe("score.negative");
   });
 });
 

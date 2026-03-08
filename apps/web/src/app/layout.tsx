@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Instrument_Serif } from "next/font/google";
-import { Providers } from "@/components/providers";
+import { BootstrapProviders } from "@/__bootstrap__/bootstrap-providers";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -32,7 +32,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        <Providers>{children}</Providers>
+        <BootstrapProviders>{children}</BootstrapProviders>
       </body>
     </html>
   );

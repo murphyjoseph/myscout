@@ -1,30 +1,15 @@
 "use client";
 
-import {
-  ChakraProvider,
-  createSystem,
-  defaultConfig,
-  defineConfig,
-} from "@chakra-ui/react";
+import { ChakraProvider, createSystem, defaultConfig } from "@chakra-ui/react";
 import { ThemeProvider } from "next-themes";
 import {
   isServer,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { themeConfig } from "@/theme/theme-config";
 
-const config = defineConfig({
-  theme: {
-    tokens: {
-      fonts: {
-        heading: { value: "var(--font-body), system-ui, sans-serif" },
-        body: { value: "var(--font-body), system-ui, sans-serif" },
-      },
-    },
-  },
-});
-
-const system = createSystem(defaultConfig, config);
+const system = createSystem(defaultConfig, themeConfig);
 
 function makeQueryClient() {
   return new QueryClient({
@@ -48,13 +33,21 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function BootstrapProviders({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const queryClient = getQueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ChakraProvider value={system}>
-        <ThemeProvider attribute="class" disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          forcedTheme="dark"
+          disableTransitionOnChange
+        >
           {children}
         </ThemeProvider>
       </ChakraProvider>

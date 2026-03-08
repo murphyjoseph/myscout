@@ -12,52 +12,25 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
-import type { JobsListContract, JobCard, CategorizedTag, TechTagCategory } from "./presenter";
+import type { JobsListContract, JobCard } from "./types";
+import type { CategorizedTag } from "@/lib/display-utils";
 import type { JobStatus } from "@/lib/types";
-
-interface JobsListViewProps {
-  contract: JobsListContract;
-  filters: {
-    status: string;
-    minScore: string;
-    remote: string;
-  };
-  onFilterChange: (key: string, value: string) => void;
-  onQuickSave: (jobId: number, currentStatus: JobStatus) => void;
-}
-
-const STATUSES: JobStatus[] = ["NEW", "SAVED", "APPLIED", "SKIPPED", "INTERVIEWING"];
-
-/* ─── Accent colors ────────────────────────────────────── */
-
-const SCORE_COLOR = "#c8913a";
-const MUST_HAVE_COLOR = "#c8913a";
-const STRONG_PLUS_COLOR = "#6b8f71";
-const AVOID_COLOR = "#8b5454";
-
-function scoreColorHex(score: string | null): string {
-  if (!score) return "#52525b";
-  const n = parseFloat(score);
-  if (n >= 50) return SCORE_COLOR;
-  if (n >= 30) return "#a3a353";
-  if (n >= 10) return "#71717a";
-  if (n >= 0) return "#52525b";
-  return "#b45454";
-}
 
 /* ─── Logo ─────────────────────────────────────────────── */
 
 function Logo() {
   return (
     <Flex align="center" gap={2.5}>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="8.5" stroke={SCORE_COLOR} strokeWidth="1.5" />
-        <circle cx="10" cy="10" r="2" fill={SCORE_COLOR} />
-        <line x1="10" y1="1.5" x2="10" y2="5.5" stroke={SCORE_COLOR} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="10" y1="14.5" x2="10" y2="18.5" stroke={SCORE_COLOR} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="1.5" y1="10" x2="5.5" y2="10" stroke={SCORE_COLOR} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="14.5" y1="10" x2="18.5" y2="10" stroke={SCORE_COLOR} strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
+      <Box color="accent.solid">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="10" cy="10" r="2" fill="currentColor" />
+          <line x1="10" y1="1.5" x2="10" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="10" y1="14.5" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="1.5" y1="10" x2="5.5" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="14.5" y1="10" x2="18.5" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </Box>
       <Text
         fontSize="lg"
         fontWeight="normal"
@@ -72,17 +45,19 @@ function Logo() {
 
 /* ─── Filter bar ───────────────────────────────────────── */
 
-function FilterBar({
-  filters,
-  onFilterChange,
-}: Pick<JobsListViewProps, "filters" | "onFilterChange">) {
+const STATUSES: JobStatus[] = ["NEW", "SAVED", "APPLIED", "SKIPPED", "INTERVIEWING"];
+
+function FilterBar({ contract }: { contract: JobsListContract }) {
+  const { filters } = contract.display;
+  const { onFilterChange } = contract.effects;
+
   const selectStyle: React.CSSProperties = {
     padding: "5px 10px",
     borderRadius: "6px",
-    border: "1px solid #27272a",
+    border: "1px solid var(--chakra-colors-border)",
     background: "transparent",
     fontSize: "13px",
-    color: "#a1a1aa",
+    color: "var(--chakra-colors-fg-muted)",
   };
 
   return (
@@ -105,11 +80,11 @@ function FilterBar({
         width="100px"
         value={filters.minScore}
         onChange={(e) => onFilterChange("minScore", e.target.value)}
-        borderColor="#27272a"
+        borderColor="border"
         bg="transparent"
-        color="#a1a1aa"
+        color="fg.muted"
         fontSize="13px"
-        _placeholder={{ color: "#52525b" }}
+        _placeholder={{ color: "fg.dim" }}
       />
       <select
         value={filters.remote}
@@ -142,8 +117,8 @@ function BookmarkButton({
       p={1}
       borderRadius="md"
       transition="all 0.15s"
-      color={isSaved ? SCORE_COLOR : "#3f3f46"}
-      _hover={{ color: isSaved ? SCORE_COLOR : "#71717a" }}
+      color={isSaved ? "accent.solid" : "fg.faint"}
+      _hover={{ color: isSaved ? "accent.solid" : "fg.subtle" }}
       title={isSaved ? "Unsave" : "Save"}
       flexShrink={0}
     >
@@ -156,16 +131,7 @@ function BookmarkButton({
 
 /* ─── Status pill ──────────────────────────────────────── */
 
-const STATUS_PILL_COLORS: Record<string, string> = {
-  NEW: "#3b82f6",
-  SAVED: "#a855f7",
-  APPLIED: "#22c55e",
-  SKIPPED: "#52525b",
-  INTERVIEWING: "#f59e0b",
-};
-
-function StatusPill({ status }: { status: string }) {
-  const color = STATUS_PILL_COLORS[status] || "#52525b";
+function StatusPill({ status, color }: { status: string; color: string }) {
   return (
     <Text
       fontSize="10px"
@@ -181,27 +147,19 @@ function StatusPill({ status }: { status: string }) {
 
 /* ─── Tag chip ─────────────────────────────────────────── */
 
-const TAG_STYLES: Record<TechTagCategory, { bg: string; color: string; borderColor: string }> = {
-  must_have: { bg: "rgba(200, 145, 58, 0.1)", color: MUST_HAVE_COLOR, borderColor: "rgba(200, 145, 58, 0.25)" },
-  strong_plus: { bg: "rgba(107, 143, 113, 0.08)", color: STRONG_PLUS_COLOR, borderColor: "rgba(107, 143, 113, 0.2)" },
-  avoid: { bg: "rgba(139, 84, 84, 0.08)", color: AVOID_COLOR, borderColor: "rgba(139, 84, 84, 0.2)" },
-  neutral: { bg: "transparent", color: "#52525b", borderColor: "#1f1f24" },
-};
-
 function TechTag({ tag }: { tag: CategorizedTag }) {
-  const style = TAG_STYLES[tag.category];
   return (
     <Text
       fontSize="11px"
       px="6px"
       py="1px"
       borderRadius="4px"
-      bg={style.bg}
-      color={style.color}
+      bg={tag.style.bg}
+      color={tag.style.color}
       border="1px solid"
-      borderColor={style.borderColor}
+      borderColor={tag.style.borderColor}
       whiteSpace="nowrap"
-      fontWeight={tag.category === "must_have" ? "600" : "normal"}
+      fontWeight={tag.style.fontWeight}
     >
       {tag.label}
     </Text>
@@ -215,10 +173,10 @@ function BadgeTag({ label }: { label: string }) {
       px="6px"
       py="1px"
       borderRadius="4px"
-      bg="#1c1c24"
-      color="#a1a1aa"
+      bg="bg.muted"
+      color="fg.muted"
       border="1px solid"
-      borderColor="#27272a"
+      borderColor="border"
       whiteSpace="nowrap"
     >
       {label}
@@ -239,8 +197,8 @@ function JobCardItem({
     <Box
       py={4}
       borderBottomWidth="1px"
-      borderColor="#1a1a1f"
-      _hover={{ bg: "#0c0c10" }}
+      borderColor="border.subtle"
+      _hover={{ bg: "bg.subtle" }}
       transition="background 0.15s"
     >
       {/* Row 1: Title + Score */}
@@ -251,8 +209,8 @@ function JobCardItem({
               fontWeight="600"
               fontSize="15px"
               lineHeight="1.4"
-              color="#ededef"
-              _hover={{ color: SCORE_COLOR }}
+              color="fg"
+              _hover={{ color: "accent.solid" }}
               transition="color 0.1s"
               lineClamp={1}
             >
@@ -266,13 +224,13 @@ function JobCardItem({
             <Text
               fontSize="15px"
               fontWeight="700"
-              color={scoreColorHex(card.score)}
+              color={card.scoreColor}
               fontVariantNumeric="tabular-nums"
             >
               {card.score}
             </Text>
           ) : (
-            <Text fontSize="12px" color="#3f3f46">&mdash;</Text>
+            <Text fontSize="12px" color="fg.faint">&mdash;</Text>
           )}
           <BookmarkButton
             isSaved={card.isSaved}
@@ -286,19 +244,19 @@ function JobCardItem({
 
       {/* Row 2: Company · Location · Salary */}
       <Flex align="center" gap={0} mt={0.5} flexWrap="wrap">
-        <Text fontSize="13px" color="#71717a">
+        <Text fontSize="13px" color="fg.subtle">
           {card.company}
         </Text>
         {card.location && (
-          <Text fontSize="13px" color="#52525b">
+          <Text fontSize="13px" color="fg.dim">
             <Text as="span" mx={1.5}>·</Text>
-            <Text as="span" color="#52525b">{card.location}</Text>
+            <Text as="span" color="fg.dim">{card.location}</Text>
           </Text>
         )}
         {card.salary && (
-          <Text fontSize="13px" color="#52525b">
+          <Text fontSize="13px" color="fg.dim">
             <Text as="span" mx={1.5}>·</Text>
-            <Text as="span" color="#8b9a6b">{card.salary}</Text>
+            <Text as="span" color="salary.fg">{card.salary}</Text>
           </Text>
         )}
       </Flex>
@@ -316,16 +274,16 @@ function JobCardItem({
             <TechTag key={tag.label} tag={tag} />
           ))}
           {card.extraTagCount > 0 && (
-            <Text fontSize="11px" color="#3f3f46">
+            <Text fontSize="11px" color="fg.faint">
               +{card.extraTagCount}
             </Text>
           )}
         </HStack>
 
         <HStack gap={2.5} flexShrink={0} align="center">
-          <StatusPill status={card.status} />
+          <StatusPill status={card.status} color={card.statusColor} />
           {card.lastSeen && (
-            <Text fontSize="11px" color="#3f3f46">
+            <Text fontSize="11px" color="fg.faint">
               {card.lastSeen}
             </Text>
           )}
@@ -337,41 +295,36 @@ function JobCardItem({
 
 /* ─── Main view ────────────────────────────────────────── */
 
-export function JobsListView({
-  contract,
-  filters,
-  onFilterChange,
-  onQuickSave,
-}: JobsListViewProps) {
+export function JobsListView({ contract }: { contract: JobsListContract }) {
   return (
     <Container maxW="3xl" py={6} px={5}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Logo />
         {contract.display.jobCount && (
-          <Text fontSize="12px" color="#3f3f46" fontVariantNumeric="tabular-nums">
+          <Text fontSize="12px" color="fg.faint" fontVariantNumeric="tabular-nums">
             {contract.display.jobCount}
           </Text>
         )}
       </Flex>
 
       {/* Filters */}
-      <Box mb={6} pb={5} borderBottomWidth="1px" borderColor="#1a1a1f">
-        <FilterBar filters={filters} onFilterChange={onFilterChange} />
+      <Box mb={6} pb={5} borderBottomWidth="1px" borderColor="border.subtle">
+        <FilterBar contract={contract} />
       </Box>
 
       {/* States */}
       {contract.renderAs === "loading" && (
         <Flex justify="center" py={20}>
-          <Spinner size="md" color="#3f3f46" />
+          <Spinner size="md" color="fg.faint" />
         </Flex>
       )}
 
       {contract.instructions.showError && (
         <Flex justify="center" py={20}>
           <VStack gap={2}>
-            <Text fontSize="md" color="#ef4444">Failed to load jobs</Text>
-            <Text fontSize="sm" color="#52525b">Check that Postgres is running and tables are created.</Text>
+            <Text fontSize="md" color="fg.error">Failed to load jobs</Text>
+            <Text fontSize="sm" color="fg.dim">Check that Postgres is running and tables are created.</Text>
           </VStack>
         </Flex>
       )}
@@ -379,8 +332,8 @@ export function JobsListView({
       {contract.instructions.showEmptyState && (
         <Flex justify="center" py={20}>
           <VStack gap={3}>
-            <Text fontSize="md" color="#71717a">No jobs found</Text>
-            <Text fontSize="sm" color="#52525b" textAlign="center" maxW="sm">
+            <Text fontSize="md" color="fg.subtle">No jobs found</Text>
+            <Text fontSize="sm" color="fg.dim" textAlign="center" maxW="sm">
               Run <code>make ingest</code> then <code>make score</code> to populate jobs.
             </Text>
           </VStack>
@@ -391,7 +344,7 @@ export function JobsListView({
       {contract.renderAs === "content" && (
         <Box>
           {contract.display.cards.map((card) => (
-            <JobCardItem key={card.id} card={card} onQuickSave={onQuickSave} />
+            <JobCardItem key={card.id} card={card} onQuickSave={contract.effects.onQuickSave} />
           ))}
         </Box>
       )}
