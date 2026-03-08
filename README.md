@@ -1,6 +1,6 @@
 # MyScout
 
-A local-only job aggregation, deduplication, and scoring tool. MyScout ingests jobs from multiple sources (Lever, Greenhouse, and more), deduplicates them into canonical records, scores them against your personal profile, and displays everything in a local Next.js dashboard.
+A local-only job aggregation, deduplication, and scoring tool. MyScout ingests jobs from multiple sources (Lever, Greenhouse, Ashby, Adzuna, Remotive, custom career sites, and more), deduplicates them into canonical records, scores them against your personal profile, and displays everything in a local Next.js dashboard.
 
 **This project is not intended for deployment.** It runs entirely on your machine with no authentication, no cloud services, and no external dependencies beyond Docker for Postgres.
 
@@ -9,9 +9,9 @@ A local-only job aggregation, deduplication, and scoring tool. MyScout ingests j
 ```
 ┌─────────────────┐     ┌──────────────┐     ┌──────────────┐
 │  Job Sources     │     │  Python CLI  │     │  Next.js UI  │
-│  (Lever, GH...) │────▶│  Worker      │────▶│  Dashboard   │
-└─────────────────┘     └──────┬───────┘     └──────┬───────┘
-                               │                     │
+│  (Lever, GH,    │────▶│  Worker      │────▶│  Dashboard   │
+│   Ashby, ...)   │     └──────┬───────┘     └──────┬───────┘
+└─────────────────┘            │                     │
                          ┌─────▼─────────────────────▼──┐
                          │    Postgres + pgvector        │
                          │    (Docker)                   │
@@ -48,56 +48,35 @@ If a fingerprint already exists, the job is linked as a variant of the existing 
 docker compose up -d
 ```
 
-### 2. Set Up Python Worker
+### 2. Run the Setup Wizard
 ```bash
-cd apps/worker
-uv sync
-uv run python -m myscout init-db
+make setup
 ```
 
-### 3. Configure Targets
+This walks you through creating your profile (job titles, tech preferences, constraints) and adding target companies. It auto-detects whether companies use Lever, Greenhouse, or Ashby.
 
-Edit `config/targets.yml` to add companies you want to track:
-
-```yaml
-targets:
-  - company: Stripe
-    connectors:
-      - type: lever
-        slug: stripe
-
-  - company: Airbnb
-    connectors:
-      - type: site
-        url: https://careers.airbnb.com/positions/
-        crawl:
-          mode: sitemap_or_links
-          max_pages: 50
-          allowed_domains:
-            - careers.airbnb.com
+### 3. Ingest & Score
+```bash
+make ingest    # Fetch jobs from all configured connectors
+make score     # Score jobs against your profile
 ```
 
-### 4. Run Ingestion & Scoring
+### 4. Start the Dashboard
 ```bash
-./scripts/ingest.sh
-./scripts/score.sh --profile config/example.profile.yml
-```
-
-### 5. Start the Dashboard
-```bash
-cd apps/web
-pnpm install
-pnpm dev
-```
-
-Or use the all-in-one script:
-```bash
-./scripts/dev.sh
+make dev       # Starts Postgres + Next.js dev server
 ```
 
 Visit `http://localhost:3000/jobs`
 
+See all available commands with `make help`.
+
 ## Adding Companies
+
+### Quick add via CLI
+```bash
+make target COMPANY="Stripe"              # Auto-detects connector
+make target COMPANY="Ramp" TYPE=ashby     # Specify connector type
+```
 
 ### Lever-based career pages
 Find the company's Lever slug (visible in their job posting URLs like `jobs.lever.co/{slug}/...`):
@@ -117,18 +96,48 @@ Find the board slug from URLs like `boards.greenhouse.io/{slug}/jobs/...`:
       slug: their-slug
 ```
 
-### Custom career page (stub)
-The site scraper connector is a stub — implement the crawl logic for your target:
+### Ashby-based career pages
+For companies using Ashby (Ramp, Notion, Linear, Vercel):
+```yaml
+- company: CompanyName
+  connectors:
+    - type: ashby
+      slug: their-slug
+```
+
+### Custom career page (site scraper)
+The site scraper discovers job links from a listing page, then extracts details from each page using JSON-LD and HTML heuristics:
 ```yaml
 - company: CompanyName
   connectors:
     - type: site
       url: https://example.com/careers
-      crawl:
-        mode: sitemap_or_links
-        max_pages: 50
-        allowed_domains:
-          - example.com
+      link_selector: "a[href*='/jobs/']"   # optional CSS selector
+      max_jobs: 50                          # optional, default 50
+```
+
+### Adzuna (search-based)
+Requires a free API key — set `ADZUNA_APP_ID` and `ADZUNA_API_KEY` in `.env`:
+```yaml
+- company: Adzuna Search
+  connectors:
+    - type: adzuna
+      what: "software engineer"
+      country: us
+      results_per_page: 50
+      max_pages: 2
+```
+
+### Browser connector (JS-heavy SPAs)
+For sites that require JavaScript rendering (Workday, iCIMS, custom SPAs). Requires Playwright:
+```bash
+uv run playwright install chromium
+```
+```yaml
+- company: CompanyName
+  connectors:
+    - type: browser
+      url: https://example.com/careers
 ```
 
 ## Adding Connectors
@@ -152,10 +161,9 @@ _CONNECTOR_MAP["myconnector"] = MyConnector
 ## Forking for Personal Use
 
 1. Fork this repository privately
-2. Copy `config/example.profile.yml` to `config/profile.yml`
-3. Fill in your preferences (titles, tech stack, keywords)
-4. Add your target companies to `config/targets.yml`
-5. Add `config/profile.yml` to `.gitignore` to keep your data private
+2. Run `make setup` to create your profile and add target companies
+3. Or manually: copy `config/example.profile.yml` to `config/profile.yml` and fill in your preferences
+4. `config/profile.yml` is already gitignored — your personal data stays on your machine
 
 ## Local-Only Tradeoffs
 
@@ -169,7 +177,7 @@ This project intentionally makes choices you should **never** make in a deployed
 | Raw SQL in route handlers | Simple, fast, no ORM overhead | Parameterized queries via an ORM or query builder with auth middleware |
 | No rate limiting | You're the only user | Rate limiting per IP/user |
 | Docker DB with no volume encryption | Local dev data only | Encrypted volumes, TLS connections |
-| No input sanitization on HTML rendering | You control the data source | Sanitize all HTML, CSP headers |
+| Job description HTML rendered via `dangerouslySetInnerHTML` | Sanitized with DOMPurify in the presenter layer | Additional CSP headers for defense-in-depth |
 
 If you ever want to turn this into a hosted product, you'd need to address all of the above. But for a local dev tool, they keep the codebase simple and dependency-free.
 
@@ -180,7 +188,7 @@ apps/
   web/                    # Next.js dashboard
   worker/
     myscout/
-      connectors/         # Source connectors (Lever, Greenhouse, stubs)
+      connectors/         # Source connectors (Lever, Greenhouse, Ashby, Adzuna, Remotive, Site, Browser)
       canonicalization/    # Fingerprinting & dedup
       scoring/            # Profile-based scoring engine
       extraction/         # Tech tag & seniority extraction
