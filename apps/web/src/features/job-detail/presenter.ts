@@ -1,5 +1,5 @@
 import DOMPurify from "isomorphic-dompurify";
-import type { JobDetail, JobStatus, TechPreferences } from "@/lib/types";
+import type { JobDetail, JobStatus, TechPreferences } from "@/lib/api/types";
 import { scoreColor, formatSalary, categorizeTags } from "@/lib/display-utils";
 import type { CategorizedTag } from "@/lib/display-utils";
 import { formatScoreLabel } from "./utils";

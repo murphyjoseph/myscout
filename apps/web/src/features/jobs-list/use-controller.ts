@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchJobs, fetchTechPreferences, updateJobAction } from "@/lib/api/jobs";
 import { presentJobsList } from "./presenter";
 import type { JobsListContract } from "./types";
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus } from "@/lib/api/types";
 
 export function useJobsListController(): JobsListContract {
   const queryClient = useQueryClient();

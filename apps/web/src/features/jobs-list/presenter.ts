@@ -1,4 +1,4 @@
-import type { JobWithScore, JobStatus, TechPreferences } from "@/lib/types";
+import type { JobWithScore, JobStatus, TechPreferences } from "@/lib/api/types";
 import { scoreColor, formatSalary, categorizeTags, STATUS_COLORS } from "@/lib/display-utils";
 import { formatDate, makeSnippet, extractScoreHighlights } from "./utils";
 import type { JobCard, JobsListDataContract } from "./types";

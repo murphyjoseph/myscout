@@ -1,4 +1,4 @@
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus } from "@/lib/api/types";
 import type { CategorizedTag } from "@/lib/display-utils";
 
 export interface ScoreRow {

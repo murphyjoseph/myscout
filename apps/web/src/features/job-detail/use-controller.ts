@@ -6,7 +6,7 @@ import { fetchJobDetail, fetchTechPreferences, updateJobAction } from "@/lib/api
 import { STATUS_COLORS } from "@/lib/display-utils";
 import { presentJobDetail } from "./presenter";
 import type { JobDetailContract } from "./types";
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus } from "@/lib/api/types";
 
 const STATUSES: JobStatus[] = ["NEW", "SAVED", "APPLIED", "SKIPPED", "INTERVIEWING"];
 

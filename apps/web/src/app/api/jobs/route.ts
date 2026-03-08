@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import type { JobWithScore } from "@/lib/types";
+import { query } from "@/lib/server/db";
+import type { JobWithScore } from "@/lib/api/types";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

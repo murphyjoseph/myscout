@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query } from "@/lib/server/db";
 
 // LOCAL-ONLY: No authentication or CSRF protection — this is a single-user
 // local tool. In a production app, every mutation endpoint would require

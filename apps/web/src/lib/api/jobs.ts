@@ -1,4 +1,4 @@
-import type { JobWithScore, JobDetail, TechPreferences } from "@/lib/types";
+import type { JobWithScore, JobDetail, TechPreferences } from "@/lib/api/types";
 
 type Result<T> =
   | { success: true; data: T }

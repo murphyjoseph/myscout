@@ -8,7 +8,7 @@ vi.mock("isomorphic-dompurify", () => ({
 }));
 
 import { presentJobDetail } from "./presenter";
-import type { JobDetail, JobStatus } from "@/lib/types";
+import type { JobDetail, JobStatus } from "@/lib/api/types";
 
 function makeDetail(overrides: Partial<JobDetail> = {}): JobDetail {
   return {

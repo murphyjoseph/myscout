@@ -1,3 +1,5 @@
+/** Row shapes matching the SQL queries in route handlers. */
+
 export interface CanonicalJob {
   id: number;
   company: string;

@@ -14,7 +14,7 @@ import {
 import NextLink from "next/link";
 import type { JobsListContract, JobCard } from "./types";
 import type { CategorizedTag } from "@/lib/display-utils";
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus } from "@/lib/api/types";
 
 /* ─── Logo ─────────────────────────────────────────────── */
 

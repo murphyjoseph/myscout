@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import type { JobWithScore, JobVariantRow } from "@/lib/types";
+import { query } from "@/lib/server/db";
+import type { JobWithScore, JobVariantRow } from "@/lib/api/types";
 
 export async function GET(
   _request: NextRequest,

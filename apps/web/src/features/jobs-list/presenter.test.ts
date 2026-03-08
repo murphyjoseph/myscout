@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { presentJobsList } from "./presenter";
-import type { JobWithScore } from "@/lib/types";
+import type { JobWithScore } from "@/lib/api/types";
 
 function makeJob(overrides: Partial<JobWithScore> = {}): JobWithScore {
   return {

@@ -1,4 +1,4 @@
-import type { TechPreferences } from "./types";
+import type { TechPreferences } from "./api/types";
 
 /* ─── Shared types ────────────────────────────────────── */
 
