@@ -304,6 +304,49 @@ def add_target(company: str | None, conn_type: str, slug: str | None, site_url: 
     click.echo("  Run `make ingest` to fetch jobs.")
 
 
+def _register_training_example(saved_path: Path, outcome: str) -> None:
+    """Add a saved job to profile.yml's training_examples section."""
+    import yaml
+
+    profile_path = CONFIG_DIR / "profile.yml"
+    if not profile_path.exists():
+        logger.debug("No profile.yml found — skipping training_examples registration")
+        return
+
+    # Use path relative to project root (e.g. "saved_jobs/vercel-site-engineer.md")
+    relative_path = str(saved_path.relative_to(saved_path.parents[1]))
+
+    try:
+        raw = profile_path.read_text(encoding="utf-8")
+        doc = yaml.safe_load(raw) or {}
+    except Exception:
+        logger.warning("Could not parse profile.yml — skipping registration")
+        return
+
+    profile = doc.setdefault("profile", {})
+    examples = profile.setdefault("training_examples", {})
+    category = examples.setdefault(outcome, [])
+
+    if relative_path in category:
+        logger.info("Already registered in profile.yml")
+        return
+
+    category.append(relative_path)
+
+    # Rewrite the file preserving the header comment
+    header_lines = []
+    for line in raw.splitlines(keepends=True):
+        if line.startswith("#") or line.strip() == "":
+            header_lines.append(line)
+        else:
+            break
+    header = "".join(header_lines)
+
+    body = yaml.dump(doc, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    profile_path.write_text(header + body, encoding="utf-8")
+    logger.info("Registered %s in profile.yml under training_examples.%s", relative_path, outcome)
+
+
 @cli.command()
 @click.argument("url")
 @click.option("--outcome", type=click.Choice(["good_shot", "got_interview", "aspirational"]), default="good_shot", help="How this job relates to your goals")
@@ -379,3 +422,6 @@ outcome: {outcome}
 """
     output_path.write_text(frontmatter + body_md, encoding="utf-8")
     logger.info("Saved to %s", output_path)
+
+    # Auto-register in profile.yml under training_examples
+    _register_training_example(output_path, outcome)
